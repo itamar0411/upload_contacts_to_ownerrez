@@ -1,0 +1,13 @@
+target/
+*.class
+*.jar
+# Secrets
+src/main/resources/config.properties
+credentials/tokens/
+# Input data and generated output
+data/*.csv
+reports/
+# IDE
+.idea/
+*.iml
+.DS_Store

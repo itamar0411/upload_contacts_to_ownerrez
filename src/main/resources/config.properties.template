@@ -1,0 +1,19 @@
+# OwnerRez API credentials (Basic Auth: email:personalAccessToken)
+ownerrez.email=host@highfiveretreats.com
+ownerrez.token=at_xxxxxxxxxxxxxxxx
+
+# Path to Mailchimp CSV export (relative to working directory)
+csv.path=data/contacts.csv
+
+# HuggingFace API token and model for gibberish detection
+huggingface.api.token=hf_xxxxxxxxxxxxxxxx
+huggingface.model.id=madhurjindal/autonlp-Gibberish-Detector-492513457
+
+# Gmail API — path to credentials.json downloaded from Google Cloud Console
+gmail.credentials.json.path=credentials/gmail_credentials.json
+gmail.tokens.dir=credentials/tokens
+gmail.from=host@highfiveretreats.com
+gmail.to=host@highfiveretreats.com
+
+# Set to true to skip the interactive CONFIRM prompt (non-interactive mode)
+upload.auto.confirm=false
