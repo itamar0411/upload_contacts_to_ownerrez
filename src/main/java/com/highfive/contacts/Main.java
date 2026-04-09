@@ -32,10 +32,12 @@ public class Main {
         String hfToken             = require(config, "huggingface.api.token");
         String hfModel             = config.getProperty("huggingface.model.id",
                                         "madhurjindal/autonlp-Gibberish-Detector-492513457");
-        String gmailCreds          = require(config, "gmail.credentials.json.path");
-        String gmailTokensDir      = config.getProperty("gmail.tokens.dir", "credentials/tokens");
-        String gmailFrom           = require(config, "gmail.from");
-        String gmailTo             = require(config, "gmail.to");
+        String smtpHost            = config.getProperty("smtp.host", "smtp.gmail.com");
+        int    smtpPort            = Integer.parseInt(config.getProperty("smtp.port", "587"));
+        String smtpUsername        = require(config, "smtp.username");
+        String smtpPassword        = require(config, "smtp.password");
+        String gmailFrom           = require(config, "smtp.from");
+        String gmailTo             = require(config, "smtp.to");
         boolean autoConfirm        = Boolean.parseBoolean(config.getProperty("upload.auto.confirm", "false"));
 
         // Allow --auto flag to override config
@@ -115,7 +117,7 @@ public class Main {
         // ── 8. Send report via Gmail ──────────────────────────────────────────
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         String subject = "Contact Upload Report — " + timestamp;
-        GmailSender gmailSender = new GmailSender(gmailCreds, gmailTokensDir, gmailFrom, gmailTo);
+        GmailSender gmailSender = new GmailSender(smtpHost, smtpPort, smtpUsername, smtpPassword, gmailFrom, gmailTo);
         System.out.println("\nSending report to " + gmailTo + "...");
         gmailSender.sendReport(subject, htmlReport);
 
