@@ -103,7 +103,7 @@ public class ReportGenerator {
         if (newContacts.isEmpty()) {
             sb.append("<p><em>None.</em></p>");
         } else {
-            sb.append("<table><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Phone</th><th>Timezone</th></tr>");
+            sb.append("<table><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Phone</th><th>Timezone</th><th>Subscribed</th></tr>");
             for (ValidationResult r : newContacts) {
                 MailchimpContact c = r.getContact();
                 sb.append("<tr>")
@@ -112,6 +112,7 @@ public class ReportGenerator {
                   .append("<td>").append(esc(c.getLastName())).append("</td>")
                   .append("<td>").append(esc(c.getPhone())).append("</td>")
                   .append("<td>").append(esc(c.getTimezone())).append("</td>")
+                  .append("<td>").append(esc(c.getSubscriptionDate())).append("</td>")
                   .append("</tr>");
             }
             sb.append("</table>");
@@ -122,7 +123,7 @@ public class ReportGenerator {
         if (skipped.isEmpty()) {
             sb.append("<p><em>None.</em></p>");
         } else {
-            sb.append("<table><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Timezone</th><th>Reason</th><th>Detail</th></tr>");
+            sb.append("<table><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Timezone</th><th>Subscribed</th><th>Reason</th><th>Detail</th></tr>");
             for (ValidationResult r : skipped) {
                 MailchimpContact c = r.getContact();
                 sb.append("<tr>")
@@ -130,6 +131,7 @@ public class ReportGenerator {
                   .append("<td>").append(esc(c.getFirstName())).append("</td>")
                   .append("<td>").append(esc(c.getLastName())).append("</td>")
                   .append("<td>").append(esc(c.getTimezone())).append("</td>")
+                  .append("<td>").append(esc(c.getSubscriptionDate())).append("</td>")
                   .append("<td>").append(badgeFor(r.getStatus())).append("</td>")
                   .append("<td>").append(esc(r.getReason())).append("</td>")
                   .append("</tr>");

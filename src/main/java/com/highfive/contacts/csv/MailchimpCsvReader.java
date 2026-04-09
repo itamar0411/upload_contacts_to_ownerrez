@@ -36,9 +36,10 @@ public class MailchimpCsvReader {
                 String phone     = get(row, "Phone Number", "phone", "Phone");
                 String status    = get(row, "Status", "status");
                 String tags      = get(row, "Tags", "tags");
-                String timezone  = get(row, "TIMEZONE", "Timezone", "timezone");
+                String timezone          = get(row, "TIMEZONE", "Timezone", "timezone");
+                String subscriptionDate = get(row, "CONFIRM_TIME", "OPTIN_TIME");
 
-                contacts.add(new MailchimpContact(email, firstName, lastName, phone, status, tags, timezone));
+                contacts.add(new MailchimpContact(email, firstName, lastName, phone, status, tags, timezone, subscriptionDate));
             }
         } catch (CsvValidationException e) {
             throw new IOException("CSV parse error: " + e.getMessage(), e);
