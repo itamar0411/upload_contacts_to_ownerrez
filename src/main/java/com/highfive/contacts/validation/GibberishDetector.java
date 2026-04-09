@@ -24,7 +24,7 @@ import java.util.Map;
 public class GibberishDetector {
 
     private static final String API_URL_TEMPLATE =
-            "https://api-inference.huggingface.co/models/%s";
+            "https://router.huggingface.co/hf-inference/models/%s";
     private static final double GIBBERISH_THRESHOLD = 0.85;
     private static final int MAX_RETRIES = 2;
     private static final long RATE_LIMIT_DELAY_MS = 120L;
