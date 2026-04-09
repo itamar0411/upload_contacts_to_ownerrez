@@ -1,5 +1,8 @@
 package com.highfive.contacts.validation;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -16,7 +19,7 @@ public class SuspiciousDomainChecker {
     );
 
     // Known disposable / throwaway email providers
-    private static final Set<String> BLOCKLIST = Set.of(
+    private static final Set<String> BLOCKLIST = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             // Generic disposable services
             "mailinator.com", "guerrillamail.com", "guerrillamail.net", "guerrillamail.org",
             "guerrillamail.de", "guerrillamail.biz", "guerrillamail.info",
@@ -92,7 +95,7 @@ public class SuspiciousDomainChecker {
             // Test-specific domains from this dataset
             "testform.xyz", "test.com", "example.com", "example.net",
             "example.org", "invalid.com", "test.test", "fake.com"
-    );
+    )));
 
     // All IANA timezone IDs that belong to the United States (50 states + territories)
     private static final Set<String> US_TIMEZONES = Set.of(
