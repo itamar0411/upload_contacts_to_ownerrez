@@ -144,6 +144,27 @@ public class SuspiciousDomainChecker {
         return new Result(false, "");
     }
 
+    // RFC 5321 limits
+    private static final int MAX_EMAIL_LENGTH      = 254;
+    private static final int MAX_LOCAL_PART_LENGTH = 64;
+
+    /**
+     * Flags emails that exceed RFC 5321 length limits:
+     *   - Total address > 254 characters
+     *   - Local part (before @) > 64 characters
+     */
+    public Result checkLength(String email) {
+        if (email == null) return new Result(false, "");
+        if (email.length() > MAX_EMAIL_LENGTH) {
+            return new Result(true, "Email too long (" + email.length() + " chars, max " + MAX_EMAIL_LENGTH + ")");
+        }
+        int atIdx = email.indexOf('@');
+        if (atIdx > MAX_LOCAL_PART_LENGTH) {
+            return new Result(true, "Local part too long (" + atIdx + " chars, max " + MAX_LOCAL_PART_LENGTH + ")");
+        }
+        return new Result(false, "");
+    }
+
     /**
      * Returns a suspicious result if the timezone is set and is not a US timezone.
      * Contacts with no timezone recorded are not flagged.

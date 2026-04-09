@@ -94,7 +94,10 @@ public class Main {
             if (!r.isNew()) continue;
             MailchimpContact c = r.getContact();
 
-            SuspiciousDomainChecker.Result suspResult = suspiciousChecker.check(c.getEmail());
+            SuspiciousDomainChecker.Result suspResult = suspiciousChecker.checkLength(c.getEmail());
+            if (!suspResult.suspicious()) {
+                suspResult = suspiciousChecker.check(c.getEmail());
+            }
             if (!suspResult.suspicious()) {
                 suspResult = suspiciousChecker.checkTimezone(c.getTimezone());
             }
