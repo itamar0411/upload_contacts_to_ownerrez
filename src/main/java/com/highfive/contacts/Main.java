@@ -151,10 +151,11 @@ public class Main {
             return;
         }
 
+        Scanner scanner = new Scanner(System.in);
+
         if (!autoConfirm) {
             System.out.println("\nReport sent. Review the email at " + gmailTo);
-            System.out.print("Type CONFIRM to proceed with uploading " + newCount + " contact(s), or anything else to abort: ");
-            Scanner scanner = new Scanner(System.in);
+            System.out.print("Type CONFIRM to proceed to manual verification, or anything else to abort: ");
             String input = scanner.nextLine().trim();
             if (!input.equalsIgnoreCase("CONFIRM")) {
                 System.out.println("Upload cancelled. No contacts were uploaded.");
@@ -164,26 +165,72 @@ public class Main {
             System.out.println("\n[Auto-confirm] Proceeding with upload of " + newCount + " contact(s).");
         }
 
-        // ── 10. Upload new contacts to OwnerRez ───────────────────────────────
-        System.out.println("\nUploading " + newCount + " contact(s) to OwnerRez...");
-        int uploaded = 0, failed = 0;
+        // ── 10. Manual verification ───────────────────────────────────────────
+        List<ValidationResult> candidates = results.stream()
+                .filter(ValidationResult::isNew)
+                .collect(Collectors.toList());
+
+        if (!autoConfirm) {
+            System.out.println("\n=== Manual Verification (" + candidates.size() + " contacts) ===");
+            System.out.println("For each contact: press Y to approve, N to reject, Q to quit verification.\n");
+
+            int idx = 0;
+            for (ValidationResult r : candidates) {
+                idx++;
+                MailchimpContact c = r.getContact();
+                System.out.println("[" + idx + "/" + candidates.size() + "]");
+                System.out.println("  Email:      " + c.getEmail());
+                System.out.println("  Name:       " + c.getFirstName() + " " + c.getLastName());
+                System.out.println("  Subscribed: " + (c.getSubscriptionDate().isEmpty() ? "(unknown)" : c.getSubscriptionDate()));
+                System.out.println("  Timezone:   " + (c.getTimezone().isEmpty() ? "(unknown)" : c.getTimezone()));
+                System.out.print("  Approve? (Y/N/Q): ");
+
+                String answer = scanner.nextLine().trim().toUpperCase();
+                if (answer.equals("Q")) {
+                    System.out.println("Verification stopped. Remaining contacts will not be uploaded.");
+                    // Mark remaining (including this one) as rejected
+                    for (int j = idx - 1; j < candidates.size(); j++) {
+                        candidates.get(j).setStatus(ContactStatus.MANUALLY_REJECTED, "Verification stopped by user");
+                    }
+                    break;
+                } else if (!answer.equals("Y")) {
+                    r.setStatus(ContactStatus.MANUALLY_REJECTED, "Rejected during manual review");
+                    System.out.println("  → Rejected.");
+                } else {
+                    System.out.println("  → Approved.");
+                }
+                System.out.println();
+            }
+        }
+
+        // ── 11. Upload approved contacts to OwnerRez ──────────────────────────
+        List<MailchimpContact> uploadedContacts = new ArrayList<>();
+        int uploadedCount = 0, failed = 0;
+        System.out.println("\nUploading approved contact(s) to OwnerRez...");
         for (ValidationResult r : results) {
             if (!r.isNew()) continue;
             try {
                 int guestId = ownerRez.createGuest(r.getContact());
                 System.out.println("  [UPLOADED] " + r.getContact().getEmail() + " → guest ID " + guestId);
-                uploaded++;
+                uploadedContacts.add(r.getContact());
+                uploadedCount++;
             } catch (IOException e) {
                 System.err.println("  [FAILED]   " + r.getContact().getEmail() + ": " + e.getMessage());
                 failed++;
             }
         }
 
-        // ── 11. Final summary ─────────────────────────────────────────────────
+        // ── 12. Final summary + email report ──────────────────────────────────
         System.out.println("\n=== Upload Complete ===");
-        System.out.println("Uploaded:  " + uploaded);
+        System.out.println("Uploaded:  " + uploadedCount);
         System.out.println("Failed:    " + failed);
-        System.out.println("Skipped:   " + (results.size() - newCount));
+        System.out.println("Rejected:  " + results.stream().filter(r -> r.getStatus() == ContactStatus.MANUALLY_REJECTED).count());
+
+        System.out.println("\nSending final upload report...");
+        String finalHtml = reportGen.generateFinalReport(uploadedContacts);
+        String finalSubject = "Contacts Added to OwnerRez — " + timestamp;
+        gmailSender.sendReport(finalSubject, finalHtml);
+        System.out.println("Final report sent to " + gmailTo);
     }
 
     private static void printSummary(List<ValidationResult> results) {

@@ -10,5 +10,7 @@ public enum ContactStatus {
     /** Email local part classified as gibberish by HuggingFace — skipped. */
     GIBBERISH,
     /** Email domain is a known disposable/test/spam provider — skipped. */
-    SUSPICIOUS
+    SUSPICIOUS,
+    /** Passed all automated checks but rejected during manual review — skipped. */
+    MANUALLY_REJECTED
 }

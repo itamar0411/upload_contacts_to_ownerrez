@@ -146,13 +146,79 @@ public class ReportGenerator {
         return sb.toString();
     }
 
+    /**
+     * Generates a concise final report listing only the contacts that were
+     * successfully uploaded to OwnerRez after manual verification.
+     */
+    public String generateFinalReport(List<MailchimpContact> uploaded) throws IOException {
+        String timestamp = LocalDateTime.now().format(TIMESTAMP_FMT);
+        String html = buildFinalHtml(uploaded, timestamp);
+
+        String fileTimestamp = LocalDateTime.now().format(FILE_FMT);
+        Path reportsDir = Paths.get("reports");
+        Files.createDirectories(reportsDir);
+        Path outFile = reportsDir.resolve("final_upload_report_" + fileTimestamp + ".html");
+        Files.writeString(outFile, html);
+        System.out.println("[Report] Final report saved: " + outFile);
+
+        return html;
+    }
+
+    private String buildFinalHtml(List<MailchimpContact> uploaded, String timestamp) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html><html lang=\"en\"><head>")
+          .append("<meta charset=\"UTF-8\">")
+          .append("<title>Final Upload Report — ").append(esc(timestamp)).append("</title>")
+          .append("<style>")
+          .append("body{font-family:Arial,sans-serif;margin:32px;color:#222}")
+          .append("h1{color:#1a5276}h2{color:#2874a6;border-bottom:1px solid #aed6f1;padding-bottom:4px}")
+          .append("table{border-collapse:collapse;width:100%;margin-bottom:24px}")
+          .append("th{background:#27ae60;color:#fff;padding:8px 12px;text-align:left}")
+          .append("td{padding:7px 12px;border-bottom:1px solid #d5d8dc}")
+          .append("tr:nth-child(even){background:#eafaf1}")
+          .append(".summary{background:#eafaf1;border-left:4px solid #27ae60;padding:12px 16px;margin-bottom:24px;border-radius:2px;font-size:1.1em}")
+          .append("</style></head><body>");
+
+        sb.append("<h1>Final Upload Report</h1>")
+          .append("<p><strong>Generated:</strong> ").append(esc(timestamp)).append("</p>");
+
+        sb.append("<div class=\"summary\">")
+          .append("<strong>").append(uploaded.size()).append(" contact(s) successfully added to OwnerRez.</strong>")
+          .append("</div>");
+
+        if (uploaded.isEmpty()) {
+            sb.append("<p><em>No contacts were uploaded.</em></p>");
+        } else {
+            sb.append("<h2>Contacts Added to OwnerRez</h2>")
+              .append("<table><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Phone</th><th>Timezone</th><th>Subscribed</th></tr>");
+            for (MailchimpContact c : uploaded) {
+                sb.append("<tr>")
+                  .append("<td>").append(esc(c.getEmail())).append("</td>")
+                  .append("<td>").append(esc(c.getFirstName())).append("</td>")
+                  .append("<td>").append(esc(c.getLastName())).append("</td>")
+                  .append("<td>").append(esc(c.getPhone())).append("</td>")
+                  .append("<td>").append(esc(c.getTimezone())).append("</td>")
+                  .append("<td>").append(esc(c.getSubscriptionDate())).append("</td>")
+                  .append("</tr>");
+            }
+            sb.append("</table>");
+        }
+
+        sb.append("<hr><p style=\"color:#7f8c8d;font-size:0.85em\">")
+          .append("Upload Contacts to OwnerRez — High Five Retreats</p>")
+          .append("</body></html>");
+
+        return sb.toString();
+    }
+
     private String badgeFor(ContactStatus status) {
         return switch (status) {
-            case NEW            -> "<span class=\"badge-new\">NEW</span>";
-            case ALREADY_EXISTS -> "<span class=\"badge-dup\">ALREADY EXISTS</span>";
-            case BAD_FORMAT     -> "<span class=\"badge-fmt\">BAD FORMAT</span>";
-            case GIBBERISH      -> "<span class=\"badge-gib\">GIBBERISH</span>";
-            case SUSPICIOUS     -> "<span class=\"badge-sus\">SUSPICIOUS</span>";
+            case NEW               -> "<span class=\"badge-new\">NEW</span>";
+            case ALREADY_EXISTS    -> "<span class=\"badge-dup\">ALREADY EXISTS</span>";
+            case BAD_FORMAT        -> "<span class=\"badge-fmt\">BAD FORMAT</span>";
+            case GIBBERISH         -> "<span class=\"badge-gib\">GIBBERISH</span>";
+            case SUSPICIOUS        -> "<span class=\"badge-sus\">SUSPICIOUS</span>";
+            case MANUALLY_REJECTED -> "<span class=\"badge-sus\">MANUALLY REJECTED</span>";
         };
     }
 
