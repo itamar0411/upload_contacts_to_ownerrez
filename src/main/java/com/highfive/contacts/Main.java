@@ -87,15 +87,20 @@ public class Main {
             }
         }
 
-        // ── 5. Suspicious domain check ────────────────────────────────────────
+        // ── 5. Suspicious domain + timezone check ────────────────────────────
         SuspiciousDomainChecker suspiciousChecker = new SuspiciousDomainChecker();
-        System.out.println("\nChecking for suspicious domains...");
+        System.out.println("\nChecking for suspicious domains and timezones...");
         for (ValidationResult r : results) {
             if (!r.isNew()) continue;
-            SuspiciousDomainChecker.Result suspResult = suspiciousChecker.check(r.getContact().getEmail());
+            MailchimpContact c = r.getContact();
+
+            SuspiciousDomainChecker.Result suspResult = suspiciousChecker.check(c.getEmail());
+            if (!suspResult.suspicious()) {
+                suspResult = suspiciousChecker.checkTimezone(c.getTimezone());
+            }
             if (suspResult.suspicious()) {
                 r.setStatus(ContactStatus.SUSPICIOUS, suspResult.reason());
-                System.out.println("  [SUSPIC]  " + r.getContact().getEmail() + " — " + suspResult.reason());
+                System.out.println("  [SUSPIC]  " + c.getEmail() + " — " + suspResult.reason());
             }
         }
 

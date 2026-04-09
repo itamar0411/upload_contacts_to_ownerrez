@@ -94,6 +94,36 @@ public class SuspiciousDomainChecker {
             "example.org", "invalid.com", "test.test", "fake.com"
     );
 
+    // All IANA timezone IDs that belong to the United States (50 states + territories)
+    private static final Set<String> US_TIMEZONES = Set.of(
+            // Contiguous US
+            "america/new_york", "america/chicago", "america/denver", "america/los_angeles",
+            "america/phoenix", "america/detroit", "america/boise",
+            // Indiana
+            "america/indiana/indianapolis", "america/indiana/knox", "america/indiana/marengo",
+            "america/indiana/petersburg", "america/indiana/tell_city", "america/indiana/vevay",
+            "america/indiana/vincennes", "america/indiana/winamac",
+            // Kentucky
+            "america/kentucky/louisville", "america/kentucky/monticello",
+            // North Dakota
+            "america/north_dakota/beulah", "america/north_dakota/center",
+            "america/north_dakota/new_salem",
+            // Alaska
+            "america/anchorage", "america/juneau", "america/nome", "america/sitka",
+            "america/yakutat", "america/metlakatla", "america/adak",
+            // Hawaii
+            "america/honolulu", "pacific/honolulu",
+            // Menominee (Michigan upper peninsula)
+            "america/menominee",
+            // US territories
+            "america/puerto_rico", "america/virgin", "pacific/guam", "pacific/saipan",
+            "pacific/pago_pago", "pacific/midway",
+            // Legacy US/ aliases
+            "us/eastern", "us/central", "us/mountain", "us/pacific",
+            "us/alaska", "us/hawaii", "us/arizona", "us/east-indiana",
+            "us/indiana-starke", "us/michigan", "us/pacific-new", "us/samoa"
+    );
+
     public record Result(boolean suspicious, String reason) {}
 
     public Result check(String email) {
@@ -112,5 +142,15 @@ public class SuspiciousDomainChecker {
         }
 
         return new Result(false, "");
+    }
+
+    /**
+     * Returns a suspicious result if the timezone is set and is not a US timezone.
+     * Contacts with no timezone recorded are not flagged.
+     */
+    public Result checkTimezone(String timezone) {
+        if (timezone == null || timezone.isBlank()) return new Result(false, "");
+        if (US_TIMEZONES.contains(timezone.toLowerCase())) return new Result(false, "");
+        return new Result(true, "Non-US timezone: " + timezone);
     }
 }
