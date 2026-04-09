@@ -44,6 +44,7 @@ public class ReportGenerator {
         long total        = report.totalContacts();
         long alreadyExist = report.countByStatus(ContactStatus.ALREADY_EXISTS);
         long badFormat    = report.countByStatus(ContactStatus.BAD_FORMAT);
+        long suspicious   = report.countByStatus(ContactStatus.SUSPICIOUS);
         long gibberish    = report.countByStatus(ContactStatus.GIBBERISH);
         long toUpload     = report.countByStatus(ContactStatus.NEW);
 
@@ -70,6 +71,7 @@ public class ReportGenerator {
           .append(".badge-dup{background:#7f8c8d;color:#fff;border-radius:3px;padding:2px 7px;font-size:0.85em}")
           .append(".badge-fmt{background:#e67e22;color:#fff;border-radius:3px;padding:2px 7px;font-size:0.85em}")
           .append(".badge-gib{background:#e74c3c;color:#fff;border-radius:3px;padding:2px 7px;font-size:0.85em}")
+          .append(".badge-sus{background:#8e44ad;color:#fff;border-radius:3px;padding:2px 7px;font-size:0.85em}")
           .append("</style></head><body>");
 
         // Header
@@ -83,6 +85,7 @@ public class ReportGenerator {
           .append("<tr><td>Total contacts in CSV</td><td>").append(total).append("</td></tr>")
           .append("<tr><td>Already in OwnerRez (skipped)</td><td>").append(alreadyExist).append("</td></tr>")
           .append("<tr><td>Bad email format (skipped)</td><td>").append(badFormat).append("</td></tr>")
+          .append("<tr><td>Suspicious domain (skipped)</td><td>").append(suspicious).append("</td></tr>")
           .append("<tr><td>Gibberish emails (skipped)</td><td>").append(gibberish).append("</td></tr>")
           .append("<tr><td><strong>Contacts eligible to upload</strong></td><td><strong>").append(toUpload).append("</strong></td></tr>")
           .append("</table>");
@@ -145,6 +148,7 @@ public class ReportGenerator {
             case ALREADY_EXISTS -> "<span class=\"badge-dup\">ALREADY EXISTS</span>";
             case BAD_FORMAT     -> "<span class=\"badge-fmt\">BAD FORMAT</span>";
             case GIBBERISH      -> "<span class=\"badge-gib\">GIBBERISH</span>";
+            case SUSPICIOUS     -> "<span class=\"badge-sus\">SUSPICIOUS</span>";
         };
     }
 

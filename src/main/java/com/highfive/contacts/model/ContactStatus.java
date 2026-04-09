@@ -8,5 +8,7 @@ public enum ContactStatus {
     /** Email address failed format validation — skipped. */
     BAD_FORMAT,
     /** Email local part classified as gibberish by HuggingFace — skipped. */
-    GIBBERISH
+    GIBBERISH,
+    /** Email domain is a known disposable/test/spam provider — skipped. */
+    SUSPICIOUS
 }

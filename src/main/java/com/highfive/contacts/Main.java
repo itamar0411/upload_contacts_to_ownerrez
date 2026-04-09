@@ -8,6 +8,7 @@ import com.highfive.contacts.report.ReportGenerator;
 import com.highfive.contacts.review.ProgrammaticReviewer;
 import com.highfive.contacts.validation.EmailFormatValidator;
 import com.highfive.contacts.validation.GibberishDetector;
+import com.highfive.contacts.validation.SuspiciousDomainChecker;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,7 +87,19 @@ public class Main {
             }
         }
 
-        // ── 5. Gibberish detection via HuggingFace ────────────────────────────
+        // ── 5. Suspicious domain check ────────────────────────────────────────
+        SuspiciousDomainChecker suspiciousChecker = new SuspiciousDomainChecker();
+        System.out.println("\nChecking for suspicious domains...");
+        for (ValidationResult r : results) {
+            if (!r.isNew()) continue;
+            SuspiciousDomainChecker.Result suspResult = suspiciousChecker.check(r.getContact().getEmail());
+            if (suspResult.suspicious()) {
+                r.setStatus(ContactStatus.SUSPICIOUS, suspResult.reason());
+                System.out.println("  [SUSPIC]  " + r.getContact().getEmail() + " — " + suspResult.reason());
+            }
+        }
+
+        // ── 7. Gibberish detection via HuggingFace ────────────────────────────
         GibberishDetector gibberishDetector = new GibberishDetector(hfToken, hfModel);
         long toCheck = results.stream().filter(ValidationResult::isNew).count();
         System.out.println("\nChecking " + toCheck + " contact(s) for gibberish via HuggingFace...");
@@ -103,7 +116,7 @@ public class Main {
             }
         }
 
-        // ── 6. Programmatic review ────────────────────────────────────────────
+        // ── 8. Programmatic review ────────────────────────────────────────────
         System.out.println("\nRunning programmatic review...");
         ProgrammaticReviewer reviewer = new ProgrammaticReviewer();
         List<String> reviewFlags = reviewer.review(results);
@@ -166,16 +179,18 @@ public class Main {
     }
 
     private static void printSummary(List<ValidationResult> results) {
-        long total     = results.size();
-        long exists    = results.stream().filter(r -> r.getStatus() == ContactStatus.ALREADY_EXISTS).count();
-        long badFmt    = results.stream().filter(r -> r.getStatus() == ContactStatus.BAD_FORMAT).count();
-        long gibberish = results.stream().filter(r -> r.getStatus() == ContactStatus.GIBBERISH).count();
-        long newC      = results.stream().filter(ValidationResult::isNew).count();
+        long total      = results.size();
+        long exists     = results.stream().filter(r -> r.getStatus() == ContactStatus.ALREADY_EXISTS).count();
+        long badFmt     = results.stream().filter(r -> r.getStatus() == ContactStatus.BAD_FORMAT).count();
+        long suspicious = results.stream().filter(r -> r.getStatus() == ContactStatus.SUSPICIOUS).count();
+        long gibberish  = results.stream().filter(r -> r.getStatus() == ContactStatus.GIBBERISH).count();
+        long newC       = results.stream().filter(ValidationResult::isNew).count();
 
         System.out.println("\n--- Classification Summary ---");
         System.out.println("  Total:           " + total);
         System.out.println("  Already exists:  " + exists);
         System.out.println("  Bad format:      " + badFmt);
+        System.out.println("  Suspicious:      " + suspicious);
         System.out.println("  Gibberish:       " + gibberish);
         System.out.println("  To upload:       " + newC);
     }
